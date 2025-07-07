@@ -2,30 +2,41 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import OtpModal from "../components/OtpModal";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+    setShowOtpModal(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await axios.post("http://localhost:5000/api/auth/send-otp", {
         name,
         email,
         password,
       });
 
-      localStorage.setItem("token", res.data.token); // store JWT
-      navigate("/dashboard"); // redirect on success
+
+      // If registration success and OTP sent, show OTP modal
+      if (res.data.message === "OTP sent to email") {
+        setShowOtpModal(true);
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
     }
+  };
+
+  const handleOtpSuccess = () => {
+    setShowOtpModal(false);
+    navigate("/dashboard");
   };
 
   return (
@@ -79,6 +90,16 @@ const Register = () => {
           </Link>
         </p>
       </form>
+
+      {showOtpModal && (
+        <OtpModal
+          name={name}
+          email={email}
+          password={password}
+          onClose={() => setShowOtpModal(false)}
+          onSuccess={handleOtpSuccess}
+        />
+      )}
     </div>
   );
 };
