@@ -17,10 +17,21 @@ export const addNewPurchase = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
+    const [customer] = await db.promise().query(
+    'SELECT id FROM users WHERE email = ?',
+    [customer_email]
+    );
+
+    if (customer.length === 0) {
+    return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    const customer_id = customer[0].id;
+
     // Save to DB
     await db.promise().query(
-      'INSERT INTO purchases (customer_name, customer_email, product, invoice_no, purchase_date, warranty_period, seller_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [customer_name, customer_email, product_name, invoice_number, purchase_date, warranty_period, req.user.id]
+      'INSERT INTO purchases (customer_name, customer_email, product, invoice_no, purchase_date, warranty_period, seller_id, customer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [customer_name, customer_email, product_name, invoice_number, purchase_date, warranty_period, req.user.id, customer_id]
     );
 
     // Send confirmation email
@@ -43,3 +54,17 @@ export const addNewPurchase = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getSellerPurchases = async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(
+      'SELECT * FROM purchases WHERE seller_id = ? ORDER BY purchase_date DESC',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Fetch Purchases Error:', err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+

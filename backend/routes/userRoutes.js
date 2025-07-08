@@ -1,10 +1,10 @@
 import express from 'express';
+import { getUserPurchases } from '../controllers/purchaseController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/profile', verifyToken, (req, res) => {
-  res.json({ message: 'Welcome to your profile!', user: req.user });
-});
+// GET purchases for logged-in user
+router.get('/purchases', verifyToken, getUserPurchases);
 
 export default router;
