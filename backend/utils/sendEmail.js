@@ -19,3 +19,17 @@ export const sendOTP = async (email, otp) => {
     html: `<p>Your OTP is: <strong>${otp}</strong></p>`,
   });
 };
+
+export const sendEmail = async ({ to, subject, html }) => {
+  try {
+    await transporter.sendMail({
+      from: `"OwnIt Support" <${process.env.EMAIL}>`,
+      to,
+      subject,
+      html
+    });
+  } catch (error) {
+    console.error('Email sending error:', error.message);
+    throw new Error('Email could not be sent');
+  }
+};
